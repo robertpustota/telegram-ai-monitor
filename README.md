@@ -47,6 +47,7 @@ docker-compose up --build
 
 - All main features are available via the REST API.
 - You need an API token (pass it in the `Authorization` header).
+- **After successful verification (`/auth/verify`), you will receive an API token. You must include this token in the `Authorization` header for all subsequent requests.**
 
 ### Main Endpoints:
 
