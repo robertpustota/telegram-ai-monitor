@@ -48,11 +48,11 @@ class MonitoringStats:
         self._stats["errors"] += 1
 
     def get_stats(self):
+        stats = self._stats.copy()
+        stats["start_time"] = stats["start_time"].isoformat()
         uptime = datetime.utcnow() - self._stats["start_time"]
-        return {
-            **self._stats,
-            "uptime": str(uptime)
-        }
+        stats["uptime"] = str(uptime)
+        return stats
 
 class TelegramClientManager:
     def __init__(self, db: Session):
