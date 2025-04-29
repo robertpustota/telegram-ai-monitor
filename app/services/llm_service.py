@@ -3,7 +3,6 @@ from app.core.config import get_settings
 
 config = get_settings()
 
-
 class PostRelevanceChecker(dspy.Signature):
     """Checks if a post is relevant to a given topic."""
     
@@ -14,7 +13,7 @@ class PostRelevanceChecker(dspy.Signature):
 
 
 class RelevancePredictor(dspy.Module):
-    def __init__(self, llm_model: str = "gpt-4o-mini", llm_model_kwargs: dict = {}):
+    def __init__(self, llm_model: str = "gpt-4", llm_model_kwargs: dict = {}):
         super().__init__()
         self.llm_model = llm_model
         self.llm_model_kwargs = llm_model_kwargs
@@ -26,6 +25,7 @@ class RelevancePredictor(dspy.Module):
             topic_name=topic_name,
             topic_description=topic_description
         )
+        
         return result.is_relevant
 
     def invoke(self, post_content: str, topic_name: str, topic_description: str = None) -> bool:
@@ -34,5 +34,9 @@ class RelevancePredictor(dspy.Module):
 
 
 def check_post_relevance(post_content: str, topic_name: str, topic_description: str = None) -> bool:
-    predictor = RelevancePredictor(llm_model="gpt-4o-mini", llm_model_kwargs={"api_key": config.OPENAI_API_KEY})
-    return predictor.invoke(post_content, topic_name, topic_description)
+    try:
+        predictor = RelevancePredictor(llm_model="gpt-4", llm_model_kwargs={"api_key": config.OPENAI_API_KEY})
+        result = predictor.invoke(post_content, topic_name, topic_description)
+        return result
+    except Exception as e:
+        raise

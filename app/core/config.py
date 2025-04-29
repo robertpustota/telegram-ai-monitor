@@ -14,9 +14,6 @@ class Settings(BaseSettings):
     API_PAGINATION_DEFAULT_LIMIT: int = 100
     API_PAGINATION_MAX_LIMIT: int = 1000
     
-    # Logging settings
-    LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
-    LOG_LEVEL: str = "INFO"
 
 @lru_cache()
 def get_settings() -> Settings:

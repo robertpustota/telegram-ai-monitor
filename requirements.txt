@@ -8,3 +8,4 @@ pydantic-settings==2.1.0
 telethon==1.28.5
 PySocks==1.7.1
 dspy==2.6.19
+loguru==0.7.2

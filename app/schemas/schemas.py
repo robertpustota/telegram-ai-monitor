@@ -1,7 +1,9 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional, List, ForwardRef
+from enum import Enum
 
+from ..models.models import SourceType
 
 class APITokenBase(BaseModel):
     name: str
@@ -40,7 +42,6 @@ class TelegramAuthRequest(BaseModel):
     api_hash: str = "eb06d4abfb49dc3eeb1aeb98ae0f581e" # android creds
     proxy: Optional[ProxyConfig] = None
 
-
 class TelegramCodeVerify(BaseModel):
     phone_number: str
     code: str
@@ -63,62 +64,59 @@ class TelegramSession(BaseModel):
     class Config:
         from_attributes = True
 
-class TopicBase(BaseModel):
-    name: str
-    description: Optional[str] = None
+class SourceBase(BaseModel):
+    username: str
+    title: Optional[str] = None
+    source_type: SourceType
 
-class TopicCreate(TopicBase):
-    channel_usernames: Optional[List[str]] = None
+class SourceCreate(SourceBase):
+    pass
 
-class Topic(TopicBase):
+class Source(SourceBase):
     id: int
-    channel_usernames: List[str] = Field(default_factory=list, description="Список username'ов каналов")
+    source_id: Optional[int] = None
     
     class Config:
         from_attributes = True
 
-class PostBase(BaseModel):
+class FilterBase(BaseModel):
+    name: str
+    prompt: Optional[str] = Field(None, description="Инструкция для модели о том, какие сообщения обрабатывать")
+    pattern: Optional[str] = Field(None)
+    include_sources: Optional[List[str]] = Field(default_factory=list)
+    exclude_sources: Optional[List[str]] = Field(default_factory=list)
+
+class FilterCreate(FilterBase):
+    pass
+
+class Filter(FilterBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
+class MessageBase(BaseModel):
     text: str
     date: datetime
 
-class PostCreate(PostBase):
-    channel_id: int
-    topic_id: Optional[int] = None
+class MessageCreate(MessageBase):
+    source_id: int
+    filter_id: Optional[int] = None
 
-class Post(PostBase):
+class Message(MessageBase):
     id: int
-    channel_id: int
-    topic_id: Optional[int] = None
+    source_id: int
+    filter_id: Optional[int] = None
     
     class Config:
         from_attributes = True
 
-class ChannelBase(BaseModel):
-    username: str
-    title: Optional[str] = None
+class SourceUsernames(BaseModel):
+    source_usernames: List[str] = Field(..., description="Список username'ов источников для добавления")
 
+class SourceUsernamesDelete(BaseModel):
+    source_usernames: List[str] = Field(..., description="Список username'ов источников для удаления")
 
-class ChannelCreate(BaseModel):
-    username: str
-    title: Optional[str] = None
-
-
-class Channel(ChannelBase):
-    id: int
-    channel_id: Optional[int] = None
-    
-    class Config:
-        from_attributes = True
-
-
-class ChannelUsernames(BaseModel):
-    channel_usernames: List[str] = Field(..., description="Список username'ов каналов для добавления")
-
-
-class ChannelUsernamesDelete(BaseModel):
-    channel_usernames: List[str] = Field(..., description="Список username'ов каналов для удаления")
-
-
-Topic.model_rebuild()
-Post.model_rebuild()
-Channel.model_rebuild() 
+Source.model_rebuild()
+Filter.model_rebuild()
+Message.model_rebuild() 

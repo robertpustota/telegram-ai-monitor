@@ -1,32 +1,33 @@
 # Telegram Channel Monitor with AI Analysis
 
-A service for monitoring Telegram channels with intelligent content analysis using artificial intelligence technologies.
+A service for monitoring Telegram channels with intelligent content filtering using AI and regular expressions.
 
 ## 🚀 Key Features
 
 - **Real-time Telegram channel monitoring** using Telethon
-- **AI-powered post analysis** using OpenAI GPT for relevance determination and categorization
-- **Smart content filtering** based on specified topics and interests
-- **Automatic saving** of relevant posts to database
-- **REST API** for channel and topic management
+- **AI-powered relevance checking** using OpenAI GPT
+- **Smart content filtering** using regular expressions and source lists
+- **Automatic saving** of relevant messages to database
+- **REST API** for filter and message management
 - **Simple API token authentication**
 
 ## 🧠 How AI Analysis Works
 
-The service uses OpenAI GPT to analyze each post based on the following parameters:
-- Determining relevance to specified topics
-- Extracting key themes and concepts
-- Analyzing sentiment and emotional tone
-- Content classification by categories
+The service uses OpenAI GPT to check message relevance based on custom prompts:
+- Each filter can have a custom prompt to define what content is relevant
+- Messages are checked against the filter's prompt using GPT
+- Only messages that pass the relevance check are saved
+- Additional filtering is done using regular expressions and source lists
 
 ## 🛠 Technology Stack
 
 - **Backend**: FastAPI
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL or SQLite
 - **Telegram API**: Telethon
 - **AI**: OpenAI dspy
 - **Authentication**: API Token
 - **Async Processing**: asyncio
+- **Logging**: loguru
 
 ## 🐳 Running the Project with Docker
 
@@ -34,12 +35,11 @@ The service uses OpenAI GPT to analyze each post based on the following paramete
 2. Clone the repository and navigate to the project directory.
 3. Create a `.env` file with the required environment variables (see `.env.example` if available).
 4. Build and start the services:
-
 ```bash
 docker-compose up --build
 ```
 
-5. The application will be available at: http://localhost:8000
+The application will be available at: http://localhost:8000
 
 ---
 
@@ -53,13 +53,17 @@ docker-compose up --build
 
 - `POST /auth/request` — Request a code for Telegram login.
 - `POST /auth/verify` — Verify the code and create a session.
-- `GET /posts/` — Get a list of posts (supports date filtering and pagination).
-- `GET /posts/channels/{channel_id}/posts` — Get posts from a specific channel.
-- `GET /posts/topics/{topic_id}/posts` — Get posts by topic.
-- `POST /topics/` — Create a new topic.
-- `PUT /topics/{topic_id}/channels` — Add channels to a topic.
-- `DELETE /topics/{topic_id}/channels` — Remove channels from a topic.
-- `DELETE /topics/{topic_id}` — Delete a topic.
+- `POST /filters/` — Create a new filter with pattern and prompt
+- `GET /filters/` — Get all filters
+- `GET /filters/{filter_id}` — Get a specific filter
+- `PUT /filters/{filter_id}/sources` — Update filter sources
+- `DELETE /filters/{filter_id}/sources` — Remove sources from filter
+- `DELETE /filters/{filter_id}` — Delete a filter
+- `GET /messages/` — Get all messages with date filtering
+- `GET /messages/sources/{source_id}/messages` — Get messages from a source
+- `GET /messages/filters/{filter_id}/messages` — Get messages from a filter
+- `GET /messages/{message_id}` — Get a specific message
+- `DELETE /messages/{message_id}` — Delete a message
 
 Full interactive API documentation is available at:
 - `http://localhost:8000/docs` (Swagger UI)

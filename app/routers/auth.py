@@ -16,6 +16,7 @@ from ..utils.auth import create_telegram_session
 router = APIRouter(prefix="/auth", tags=["Auth"])
 telegram_auth_data: Dict[str, Dict] = {}
 
+
 @router.post("/request", response_model=TelegramAuthRequest)
 async def request_telegram_auth(auth_request: TelegramAuthRequest, db: Session = Depends(get_db)):
     """Requests verification code for Telegram login"""
@@ -49,6 +50,7 @@ async def request_telegram_auth(auth_request: TelegramAuthRequest, db: Session =
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number is banned")
     finally:
         await client.disconnect()
+
 
 @router.post("/verify", response_model=TelegramSessionSchema)
 async def verify_telegram_code(verification: TelegramCodeVerify, db: Session = Depends(get_db)):

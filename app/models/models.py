@@ -1,7 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, BigInteger, Table
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, BigInteger, Table, JSON, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .base import Base
+import enum
+
+
+class SourceType(enum.Enum):
+    CHANNEL = "CHANNEL"
+    GROUP = "GROUP"
+    PRIVATE = "PRIVATE"
 
 
 class APIToken(Base):
@@ -37,53 +44,62 @@ class TelegramSession(Base):
     last_used = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     api_token = relationship("APIToken", back_populates="telegram_session", uselist=False)
+    sources = relationship("Source", back_populates="session")
+    filters = relationship("Filter", back_populates="session")
 
 
-class Channel(Base):
-    """Model for storing channels"""
-    __tablename__ = "channels"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    title = Column(String)
-    channel_id = Column(BigInteger)
-    session_id = Column(Integer, ForeignKey("telegram_sessions.id"))
-    
-    session = relationship("TelegramSession")
-    topics = relationship("Topic", secondary="topic_channels", back_populates="channels")
-    posts = relationship("Post", back_populates="channel")
-
-
-class Topic(Base):
-    """Model for storing topics"""
-    __tablename__ = "topics"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    description = Column(String, nullable=True)
-    
-    channels = relationship("Channel", secondary="topic_channels", back_populates="topics")
-    posts = relationship("Post", back_populates="topic")
-
-
-class Post(Base):
-    """Model for storing posts"""
-    __tablename__ = "posts"
+class Message(Base):
+    """Model for storing messages from various sources"""
+    __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True, index=True)
     text = Column(Text)
     date = Column(DateTime(timezone=True))
     message_id = Column(BigInteger)
     
-    channel_id = Column(Integer, ForeignKey("channels.id"))
-    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=True)
+    source_id = Column(Integer, ForeignKey("sources.id"))
+    filter_id = Column(Integer, ForeignKey("filters.id"), nullable=True)
     
-    channel = relationship("Channel", back_populates="posts")
-    topic = relationship("Topic", back_populates="posts")
+    source = relationship("Source", back_populates="messages")
+    filter = relationship("Filter", back_populates="messages")
 
-topic_channels = Table(
-    "topic_channels",
+
+class Source(Base):
+    """Model for storing message sources (channels, groups, private chats)"""
+    __tablename__ = "sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    title = Column(String)
+    source_id = Column(BigInteger)
+    source_type = Column(Enum(SourceType))
+    session_id = Column(Integer, ForeignKey("telegram_sessions.id"))
+    
+    session = relationship("TelegramSession", back_populates="sources")
+    filters = relationship("Filter", secondary="filter_sources", back_populates="sources")
+    messages = relationship("Message", back_populates="source")
+
+
+class Filter(Base):
+    """Model for storing message filters"""
+    __tablename__ = "filters"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    prompt = Column(Text, nullable=True)  # Инструкция для модели о том, какие сообщения обрабатывать
+    pattern = Column(String)  # Regex pattern or other filter pattern
+    include_sources = Column(JSON, default=list)  # White list of sources
+    exclude_sources = Column(JSON, default=list)  # Black list of sources
+    session_id = Column(Integer, ForeignKey("telegram_sessions.id"))
+    
+    session = relationship("TelegramSession", back_populates="filters")
+    sources = relationship("Source", secondary="filter_sources", back_populates="filters")
+    messages = relationship("Message", back_populates="filter")
+
+
+filter_sources = Table(
+    "filter_sources",
     Base.metadata,
-    Column("topic_id", Integer, ForeignKey("topics.id"), primary_key=True),
-    Column("channel_id", Integer, ForeignKey("channels.id"), primary_key=True)
+    Column("filter_id", Integer, ForeignKey("filters.id"), primary_key=True),
+    Column("source_id", Integer, ForeignKey("sources.id"), primary_key=True)
 ) 
