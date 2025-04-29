@@ -1,10 +1,10 @@
-# Telegram Channel Monitor with AI Analysis
+# Telegram Chat Monitor with AI Analysis
 
-A service for monitoring Telegram channels with intelligent content filtering using AI and regular expressions.
+A service for monitoring Telegram chats (channels, groups, and private chats) with intelligent content filtering using AI and regular expressions.
 
 ## 🚀 Key Features
 
-- **Real-time Telegram channel monitoring** using Telethon
+- **Real-time Telegram chat monitoring** using Telethon (channels, groups, private chats)
 - **AI-powered relevance checking** using OpenAI GPT
 - **Smart content filtering** using regular expressions and source lists
 - **Automatic saving** of relevant messages to database
